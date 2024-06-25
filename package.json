@@ -1,0 +1,26 @@
+{
+  "name": "to-do-notes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "init": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elhassu/to-do-notes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elhassu/to-do-notes/issues"
+  },
+  "homepage": "https://github.com/elhassu/to-do-notes#readme",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
