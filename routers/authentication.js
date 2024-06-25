@@ -1,47 +1,56 @@
 import {Router} from "express";
-import {clearSession, login} from "../lib/helpers.js";
+import {clearSession, createUser, login} from "../lib/helpers.js";
 
 const auth = Router();
 
 auth.post("/register", async (req, res) => {
-	const {name, surname, email, password} = req.body;
+	try {
+		const {name, surname, email, password} = req.body;
 
-	const userId = await createUser({name, surname, email, password});
+		const userId = await createUser({name, surname, email, password});
 
-	await login({userId, password}, res)
-		.then((sessionId) => {
-			res.status(200);
-		})
-		.catch((error) => {
-			if (error.status && error.message) {
-				res.status(error.status).send({message: error.message});
-			} else {
-				res.status(500).json({message: "Internal server error"});
-			}
-		});
+		await login({userId, password}, res);
+
+		res.sendStatus(200);
+	} catch (error) {
+		if (error.stack) console.error(error.stack);
+
+		if (error.status && error.message) {
+			res.status(error.status).send({message: error.message});
+		} else {
+			res.status(500).json({message: "Internal server error"});
+		}
+	}
 });
 
 auth.post("/login", async (req, res) => {
-	const {email, password} = req.body;
+	try {
+		const {email, password} = req.body;
 
-	await login({email, password}, res)
-		.then((sessionId) => {
-			res.status(200);
-		})
-		.catch((error) => {
-			if (error.status && error.message) {
-				res.status(error.status).send({message: error.message});
-			} else {
-				res.status(500).json({message: "Internal server error"});
-			}
-		});
+		await login({email, password}, res);
 
-	res.status(200);
+		res.sendStatus(200);
+	} catch (error) {
+		if (error.stack) console.error(error.stack);
+
+		if (error.status && error.message) {
+			res.status(error.status).send({message: error.message});
+		} else {
+			res.status(500).json({message: "Internal server error"});
+		}
+	}
 });
 
-auth.post("/logout", (req, res) => {
-	clearSession(res);
-	res.status(200);
+auth.post("/logout", async (req, res) => {
+	try {
+		await clearSession(req, res);
+
+		res.sendStatus(200);
+	} catch (error) {
+		if (error.stack) console.error(error.stack);
+
+		res.status(500).send({message: "Internal server error"});
+	}
 });
 
 export default auth;

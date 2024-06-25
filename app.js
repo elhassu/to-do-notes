@@ -2,16 +2,34 @@ import express from "express";
 import authRoute from "./routers/authentication.js";
 import notesRoute from "./routers/notes.js";
 import {assignCookies, getSessionDetails} from "./lib/helpers.js";
+import bodyParser from "body-parser";
+
+const jsonParser = bodyParser.json();
 
 const app = express();
 
+app.use(jsonParser);
+
 app.use(async (req, res, next) => {
-	if (process.env.IS_LOCAL) console.log(`${req.method} ${req.path}`);
+	if (process.env.IS_LOCAL) {
+		console.log(`${req.method} ${req.path}`);
+	}
 
-    assignCookies(req);
+	assignCookies(req);
 
-	if (req.cookies.session) {
-		req.userDetails = await getSessionDetails(req.cookies.session);
+	try {
+		if (req.cookies?.session) {
+			req.userDetails = await getSessionDetails(req.cookies.session);
+		}
+	} catch (error) {
+		if (error.stack) console.error(error.stack);
+
+		if (error.status && error.message) {
+			res.status(error.status).send({message: error.message});
+		} else {
+			res.status(500).send({message: "Internal server error"});
+		}
+		return;
 	}
 
 	next();
