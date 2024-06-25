@@ -53,4 +53,19 @@ auth.post("/logout", async (req, res) => {
 	}
 });
 
+auth.get("/status", async (req, res) => {
+	try {
+
+		if (req.userDetails) {
+			res.json(req.userDetails);
+		} else {
+			res.sendStatus(204);
+		}
+	} catch (error) {
+		if (error.stack) console.error(error.stack);
+
+		res.status(500).send({message: "Internal server error"});
+	}
+})
+
 export default auth;

@@ -15,7 +15,7 @@ export function assignCookies(req) {
 }
 
 export function setSession(session, res) {
-	res.cookie("session", session);
+	res.cookie("session", session, {domain: "localhost", path: "/", secure: true, maxAge: 4 * 60 * 60 * 1000});
     console.log("Session set!");
 }
 
@@ -27,7 +27,9 @@ export async function clearSession(req, res) {
 
     const session = (await DB.read("SESSION_TABLE", { identifier: req.cookies.session }))[0];
 
-    await DB.update("SESSION_TABLE", {id: session.id, expires_at: new Date().toSQLString()});
+    if (session) {
+        await DB.update("SESSION_TABLE", {id: session.id, expires_at: new Date().toSQLString()});
+    }
 
 	res.clearCookie("session");
     console.log("Session cleared!")
@@ -44,8 +46,12 @@ export async function getSessionDetails(session) {
         throw { status: 403, message: "Session expired" }
     }
 
+    const user = (await DB.read("USER_TABLE", { id: sessionDetails.user_id }))[0];
+
     return {
         userId: sessionDetails?.user_id,
+        ...user,
+        fullName: [user?.name, user?.surname].filter(Boolean).join(" "),
         expiresAt: sessionDetails?.expires_at
     }
 }
@@ -125,7 +131,7 @@ export function login({ userId, email, password }, res) {
             userId = user.id;
         }
 
-        const passwordHash = (await DB.read("PASSWORD_TABLE", {user_id: userId}))[0].password;
+        const passwordHash = (await DB.read("PASSWORD_TABLE", {user_id: userId}))[0]?.password;
 
         const match = await compare(password, passwordHash);
 

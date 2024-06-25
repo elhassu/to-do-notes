@@ -10,6 +10,22 @@ const app = express();
 
 app.use(jsonParser);
 
+app.use(function (req, res, next) {
+	if (["http://localhost:3000"].indexOf(req.header("origin")) !== -1) {
+		res.header("Access-Control-Allow-Origin", req.header("origin"));
+		res.header("Access-Control-Allow-Credentials", "true");
+		res.header("Access-Control-Expose-Headers", "Content-Disposition");
+	} else {
+		res.header("Access-Control-Allow-Origin", "*");
+	}
+
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, x-access-token, x-external-id",
+	);
+	next();
+});
+
 app.use(async (req, res, next) => {
 	if (process.env.IS_LOCAL) {
 		console.log(`${req.method} ${req.path}`);
