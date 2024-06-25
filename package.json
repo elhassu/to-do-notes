@@ -1,0 +1,27 @@
+{
+	"name": "to-do-notes",
+	"version": "1.0.0",
+	"description": "",
+	"type": "module",
+	"main": "app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node --env-file=.env app.js",
+		"dev": "echo \"You are attempting to run using dev mode.\nnodemon is required when running using 'rpm run dev'.\nUse 'npm run start' to run using node \n\" && nodemon --env-file=.env app.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/elhassu/to-do-notes.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/elhassu/to-do-notes/issues"
+	},
+	"homepage": "https://github.com/elhassu/to-do-notes#readme",
+	"dependencies": {
+		"express": "^4.19.2",
+		"mysql2": "^3.10.1"
+	}
+}
