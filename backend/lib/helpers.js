@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
-import DB from "../lib/connectors.js"
+import DB from "./connectors.js"
 
 Date.prototype.toSQLString = function () {
     return this.toISOString().slice(0, 19).replace('T', ' ');
