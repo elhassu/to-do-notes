@@ -1,14 +1,19 @@
 import express from "express";
 import authRoute from "./routers/authentication.js";
 import notesRoute from "./routers/notes.js";
-import { assignCookies } from "./lib/helpers.js";
+import {assignCookies, getSessionDetails} from "./lib/helpers.js";
 
 const app = express();
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
 	if (process.env.IS_LOCAL) console.log(`${req.method} ${req.path}`);
 
     assignCookies(req);
+
+	if (req.cookies.session) {
+		req.userDetails = await getSessionDetails(req.cookies.session);
+	}
+
 	next();
 });
 

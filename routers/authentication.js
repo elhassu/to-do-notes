@@ -1,28 +1,47 @@
 import {Router} from "express";
-import {setSession, clearSession} from "../lib/helpers.js";
+import {clearSession, login} from "../lib/helpers.js";
 
 const auth = Router();
 
-auth.post("/register", (req, res) => {
+auth.post("/register", async (req, res) => {
+	const {name, surname, email, password} = req.body;
 
-    const session = 4
+	const userId = await createUser({name, surname, email, password});
 
-    setSession(session, res)
-    res.status(200);
+	await login({userId, password}, res)
+		.then((sessionId) => {
+			res.status(200);
+		})
+		.catch((error) => {
+			if (error.status && error.message) {
+				res.status(error.status).send({message: error.message});
+			} else {
+				res.status(500).json({message: "Internal server error"});
+			}
+		});
 });
 
-auth.get("/login", (req, res) => {
+auth.post("/login", async (req, res) => {
+	const {email, password} = req.body;
 
-    const session = 4
+	await login({email, password}, res)
+		.then((sessionId) => {
+			res.status(200);
+		})
+		.catch((error) => {
+			if (error.status && error.message) {
+				res.status(error.status).send({message: error.message});
+			} else {
+				res.status(500).json({message: "Internal server error"});
+			}
+		});
 
-    setSession(session, res)
 	res.status(200);
 });
 
-auth.get("/logout", (req, res) => {
-
-    clearSession(res)
-    res.status(200);
+auth.post("/logout", (req, res) => {
+	clearSession(res);
+	res.status(200);
 });
 
 export default auth;

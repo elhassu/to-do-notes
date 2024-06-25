@@ -21,7 +21,9 @@
 	},
 	"homepage": "https://github.com/elhassu/to-do-notes#readme",
 	"dependencies": {
+		"bcrypt": "^5.1.1",
 		"express": "^4.19.2",
-		"mysql2": "^3.10.1"
+		"mysql2": "^3.10.1",
+		"uuid": "^10.0.0"
 	}
 }
