@@ -25,7 +25,7 @@ notes.get("", async (req, res) => {
 
 notes.get("/:id", async (req, res) => {
 	try {
-		const note = await DB.read("NOTES_TABLE", {id: req.params.id});
+		const note = (await DB.read("NOTES_TABLE", {id: req.params.id}))[0];
 
 		res.json(note);
 	} catch (error) {
