@@ -4,12 +4,10 @@ import DB from "../lib/connectors.js";
 const notes = Router();
 
 notes.use((req, res, next) => {
-	console.log("start notes middleware");
 	if (!req.userDetails?.id) {
 		res.status(401).send({message: "Unauthorized"});
 		return;
 	}
-	console.log("notes middleware");
     next()
 });
 
