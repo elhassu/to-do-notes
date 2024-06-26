@@ -7,6 +7,8 @@ Date.prototype.toSQLString = function () {
 }
 
 export function assignCookies(req) {
+    console.log(req.headers);
+
 	req.cookies = req.headers.cookie?.split(";").reduce((acc, c) => {
 		const [key, val] = c.trim().split("=").map(decodeURIComponent);
 		acc[key] = val;

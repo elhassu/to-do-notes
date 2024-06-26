@@ -26,6 +26,11 @@ app.use(function (req, res, next) {
 	next();
 });
 
+app.options("/*", async function (req, res) {
+	res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
+	res.sendStatus(200);
+});
+
 app.use(async (req, res, next) => {
 	if (process.env.IS_LOCAL) {
 		console.log(`${req.method} ${req.path}`);

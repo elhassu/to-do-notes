@@ -135,7 +135,6 @@ async function query(table, foreignKeys) {
 		throw new Error(`Some foreign keys were not found: '${keys}'`);
 	}
 
-
 	const condition = keys.map((key) => `${key} = ?`).join(" AND ");
 
 	const sql = `
@@ -206,7 +205,10 @@ async function update(table, data) {
     WHERE id = ?
     `;
 
-	return poolQuery(sql, [...filteredValues, id]);
+	const queryResult = await poolQuery(sql, [...filteredValues, id]);
+	const {insertId} = queryResult[0];
+
+	return insertId;
 }
 
 /**
@@ -228,7 +230,9 @@ async function remove(table, id) {
     WHERE id = ?
     `;
 
-	await poolQuery(sql, [id]);
+	const result = await poolQuery(sql, [id]);
+
+	return result;
 }
 
 /**

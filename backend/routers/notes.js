@@ -4,17 +4,19 @@ import DB from "../lib/connectors.js";
 const notes = Router();
 
 notes.use((req, res, next) => {
-	if (!req.userDetails?.userId) {
+	console.log("start notes middleware");
+	if (!req.userDetails?.id) {
 		res.status(401).send({message: "Unauthorized"});
 		return;
 	}
+	console.log("notes middleware");
     next()
 });
 
 notes.get("", async (req, res) => {
 	const {userDetails} = req;
 	try {
-		const notes = await DB.query("NOTES_TABLE", {user_id: userDetails?.userId});
+		const notes = await DB.query("NOTES_TABLE", {user_id: userDetails?.id});
 
 		res.json(notes);
 	} catch (error) {
@@ -38,9 +40,16 @@ notes.post("", async (req, res) => {
 	try {
 		const {title, content} = req.body;
 
-		await DB.create("NOTES_TABLE", {title, content, user_id: req.userDetails.userId});
+		if (!title || !content) {
+			res.status(400).send({message: "Title and content are required"});
+			return;
+		}
 
-		res.status(201).send({message: "Note created"});
+		const id = await DB.create("NOTES_TABLE", {title, content, user_id: req.userDetails.id});
+
+		const note = await DB.get("NOTES_TABLE", id);
+
+		res.status(201).send(note);
 	} catch (error) {
 		console.error(error.stack);
 		res.status(500).send({message: "Internal server error"});
@@ -51,6 +60,17 @@ notes.put("/:id", async (req, res) => {
 	try {
 		const {title, content} = req.body;
 		const {id} = req.params;
+
+		if (!title || !content) {
+			res.status(400).send({message: "Title and content are required"});
+			return;
+		}
+
+		const note = await DB.get("NOTES_TABLE", req.params.id);
+		if (note.user_id !== req.userDetails.id) {
+			res.status(403).send({message: "Forbidden"});
+			return;
+		}
 
 		await DB.update("NOTES_TABLE", {id, title, content});
 
@@ -63,9 +83,16 @@ notes.put("/:id", async (req, res) => {
 
 notes.delete("/:id", async (req, res) => {
 	try {
-		await DB.delete("NOTES_TABLE", req.params.id);
+		const note = await DB.get("NOTES_TABLE", req.params.id);
 
-		res.status(204);
+		if (note.user_id !== req.userDetails.id) {
+			res.status(403).send({message: "Forbidden"});
+			return;
+		}
+
+		await DB.remove("NOTES_TABLE", req.params.id);
+
+		res.sendStatus(204);
 	} catch (error) {
 		console.error(error.stack);
 		res.status(500).send({message: "Internal server error"});

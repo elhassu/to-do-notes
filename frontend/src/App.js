@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import {Toaster} from "react-hot-toast";
 import {useState} from "react";
 import axios from "axios";
+import NotesList from "./pages/Notes List";
 
 function App() {
 	const [user, setUser] = useState();
@@ -32,7 +33,7 @@ function App() {
 							path='/'
 							element={
 								user ? (
-									<></>
+									<NotesList user={user} />
 								) : (
 									<Navigate
 										to='/login'
