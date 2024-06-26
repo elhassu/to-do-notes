@@ -239,7 +239,7 @@ export default function NotesList() {
 									</tr>
 								</thead>
 								<tbody className='divide-y divide-gray-200'>
-									{notes.map((note) => (
+									{notes?.length > 0 ? notes.map((note) => (
 										<tr key={note.id}>
 											<td className='whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0'>
 												{note.title}
@@ -256,7 +256,15 @@ export default function NotesList() {
 												</a>
 											</td>
 										</tr>
-									))}
+									)): (
+										<tr>
+											<td className='whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0'>
+												No notes found
+											</td>
+											<td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'></td>
+											<td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0'></td>
+										</tr>
+									)}
 								</tbody>
 							</table>
 						</div>
