@@ -1,13 +1,13 @@
 import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
-import DB from "./connectors.js"
+import {v4 as uuidv4} from "uuid";
+import DB from "./connectors.js";
 
 Date.prototype.toSQLString = function () {
-    return this.toISOString().slice(0, 19).replace('T', ' ');
-}
+	return this.toISOString().slice(0, 19).replace("T", " ");
+};
 
 export function assignCookies(req) {
-    console.log(req.headers);
+	console.log(req.headers);
 
 	req.cookies = req.headers.cookie?.split(";").reduce((acc, c) => {
 		const [key, val] = c.trim().split("=").map(decodeURIComponent);
@@ -18,44 +18,43 @@ export function assignCookies(req) {
 
 export function setSession(session, res) {
 	res.cookie("session", session, {domain: "localhost", path: "/", secure: true, maxAge: 4 * 60 * 60 * 1000});
-    console.log("Session set!");
+	console.log("Session set!");
 }
 
 export async function clearSession(req, res) {
+	if (!req.cookies.session) {
+		return;
+	}
 
-    if (!req.cookies.session) {
-        return;
-    }
+	const session = (await DB.read("SESSION_TABLE", {identifier: req.cookies.session}))[0];
 
-    const session = (await DB.read("SESSION_TABLE", { identifier: req.cookies.session }))[0];
-
-    if (session) {
-        await DB.update("SESSION_TABLE", {id: session.id, expires_at: new Date().toSQLString()});
-    }
+	if (session) {
+		await DB.update("SESSION_TABLE", {id: session.id, expires_at: new Date().toSQLString()});
+	}
 
 	res.clearCookie("session");
-    console.log("Session cleared!")
+	console.log("Session cleared!");
 }
 
 export async function getSessionDetails(session) {
-    const sessionDetails = (await DB.read("SESSION_TABLE", { identifier: session }))[0];
+	const sessionDetails = (await DB.read("SESSION_TABLE", {identifier: session}))[0];
 
-    if (!sessionDetails) {
-        throw { status: 401, message: "Invalid session" }
-    }
+	if (!sessionDetails) {
+		throw {status: 401, message: "Invalid session"};
+	}
 
-    if (sessionDetails.expires_at < new Date().toSQLString()){
-        throw { status: 403, message: "Session expired" }
-    }
+	if (sessionDetails.expires_at < new Date().toSQLString()) {
+		throw {status: 403, message: "Session expired"};
+	}
 
-    const user = (await DB.read("USER_TABLE", { id: sessionDetails.user_id }))[0];
+	const user = (await DB.read("USER_TABLE", {id: sessionDetails.user_id}))[0];
 
-    return {
-        userId: sessionDetails?.user_id,
-        ...user,
-        fullName: [user?.name, user?.surname].filter(Boolean).join(" "),
-        expiresAt: sessionDetails?.expires_at
-    }
+	return {
+		userId: sessionDetails?.user_id,
+		...user,
+		fullName: [user?.name, user?.surname].filter(Boolean).join(" "),
+		expiresAt: sessionDetails?.expires_at,
+	};
 }
 
 function encrypt(plain) {
@@ -77,32 +76,31 @@ export function compare(plain, hash) {
 }
 
 export function formatEmail(email) {
-    // this regex matches the string between the "+" and the "@" in an email address
-    const emailParam = email.match(/(?<=\+)(.*?)(?=@)/)?.[0];
+	// this regex matches the string between the "+" and the "@" in an email address
+	const emailParam = email.match(/(?<=\+)(.*?)(?=@)/)?.[0];
 
-    if (emailParam) {
-        email = email.replace(`+${emailParam[0]}`, "");
-        const formatted = email.toLowerCase().trim();
-        const [emailUser, domain] = formatted.split("@");
-        email = `${emailUser}+${emailParam}@${domain}`;
-    }
+	if (emailParam) {
+		email = email.replace(`+${emailParam}`, "");
+		const formatted = email.toLowerCase().trim();
+		const [emailUser, domain] = formatted.split("@");
+		email = `${emailUser}+${emailParam}@${domain}`;
+	}
 
-    return email;
+	return email;
 }
 
 export async function createUser(user) {
 	let {name, surname, email, password} = user;
 
-    email = formatEmail(email);
+	email = formatEmail(email);
 
-    const existingUser = (await DB.read("USER_TABLE", { email }))[0];
+	const existingUser = (await DB.read("USER_TABLE", {email}))[0];
 
-    if (existingUser) {
-        throw { status: 409, message: "User already exists" };
-    }
+	if (existingUser) {
+		throw {status: 409, message: "User already exists"};
+	}
 
 	const userId = await DB.create("USER_TABLE", {name, surname, email});
-
 
 	if (password) {
 		const encryptedPassword = await encrypt(password);
@@ -114,35 +112,38 @@ export async function createUser(user) {
 
 export async function createSession(userId) {
 	const expires_at = new Date(new Date().getTime() + 4 * 60 * 60 * 1000);
-    const identifier = uuidv4();
+	const identifier = uuidv4();
 
-	await DB.create("SESSION_TABLE", { user_id: userId, identifier, expires_at});
+	await DB.create("SESSION_TABLE", {user_id: userId, identifier, expires_at});
 
-    return identifier;
+	return identifier;
 }
 
-export function login({ userId, email, password }, res) {
-    return new Promise(async (resolve, reject) => {
-        if (!userId && !email) reject({ status: 400, message: "User ID or email is required" })
-        if (!password) reject({ status: 400, message: "Password is required" })
+export function login({userId, email, password}, res) {
+	return new Promise(async (resolve, reject) => {
+		if (!userId && !email) reject({status: 400, message: "User ID or email is required"});
+		if (!password) reject({status: 400, message: "Password is required"});
 
-        if (!userId && email) {
-            const user = (await DB.read("USER_TABLE", { email }))[0];
+		if (!userId && email) {
+			const user = (await DB.read("USER_TABLE", {email}))[0];
 
-            if (!user) reject({ status: 404, message: "User not found" });
-            userId = user.id;
-        }
+			if (!user) {
+				reject({status: 404, message: "User not found"});
+				return;
+			}
+			userId = user.id;
+		}
 
-        const passwordHash = (await DB.read("PASSWORD_TABLE", {user_id: userId}))[0]?.password;
+		const passwordHash = (await DB.read("PASSWORD_TABLE", {user_id: userId}))[0]?.password;
 
-        const match = await compare(password, passwordHash);
+		const match = await compare(password, passwordHash);
 
-        if (match) {
-            const sessionId = await createSession(userId);
-            setSession(sessionId, res);
-            resolve(sessionId);
-        } else {
-            reject({ status: 401, message: "Incorrect Password" });
-        }
-    })
+		if (match) {
+			const sessionId = await createSession(userId);
+			setSession(sessionId, res);
+			resolve(sessionId);
+		} else {
+			reject({status: 401, message: "Incorrect Password"});
+		}
+	});
 }
