@@ -9,7 +9,7 @@
     "start:backend": "cd backend && npm start",
     "dev:backend": "cd backend && npm run dev",
     "start:frontend": "cd frontend && npm start",
-    "init": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "init": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../"
   },
   "repository": {
     "type": "git",
